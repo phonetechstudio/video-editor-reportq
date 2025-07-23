@@ -6,121 +6,88 @@
   <title>Video Editor Report</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f7f7f7;
+      font-family: sans-serif;
+      background: #f1f3f6;
       margin: 0;
       padding: 0;
     }
-
     .container {
-      max-width: 500px;
-      margin: 60px auto;
-      background: #fff;
+      max-width: 450px;
+      margin: 50px auto;
+      background: white;
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-
     h2 {
       text-align: center;
+      color: #333;
     }
-
     input, textarea, button {
       width: 100%;
       padding: 10px;
       margin-top: 10px;
-      font-size: 16px;
       border-radius: 6px;
       border: 1px solid #ccc;
+      box-sizing: border-box;
+      font-size: 16px;
     }
-
     button {
-      background-color: #4CAF50;
+      background: #007bff;
       color: white;
       border: none;
       cursor: pointer;
     }
+    .hidden { display: none; }
 
-    #form-section, #dashboard {
-      display: none;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    #incentive-popup {
-      display: none;
+    #incentivePopup {
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.9);
+      top: 0;
+      left: 0;
+      background: rgba(0,0,0,0.8);
       color: white;
-      font-size: 28px;
-      text-align: center;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      z-index: 9999;
-    }
-
-    #incentive-popup button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 18px;
-    }
-
-    table {
       width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
+      height: 100%;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-direction: column;
     }
 
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: center;
-    }
-
-    th {
-      background: #eee;
+    #incentivePopup button {
+      margin-top: 20px;
+      background: #28a745;
     }
   </style>
 </head>
 <body>
 
-<div class="container" id="login-section">
-  <h2>🔐 Login</h2>
-  <input type="text" id="username" placeholder="Username" required>
-  <input type="password" id="password" placeholder="Password" required>
+<div class="container" id="loginSection">
+  <h2>🔐 Editor Login</h2>
+  <input type="text" id="username" placeholder="Username" />
+  <input type="password" id="password" placeholder="Password" />
   <button onclick="login()">Login</button>
-  <p id="error" style="color: red;"></p>
+  <p id="loginError" style="color:red;"></p>
 </div>
 
-<div class="container" id="form-section">
-  <h2>🎬 Submit Report</h2>
-  <form onsubmit="return submitForm()">
+<div class="container hidden" id="formSection">
+  <h2>🎬 Submit Weekly Report</h2>
+  <form id="reportForm">
     <input type="text" id="week" placeholder="Week Number (e.g., Week 30)" required />
     <input type="text" id="month" placeholder="Month (e.g., July)" required />
     <input type="number" id="videoCount" placeholder="Number of videos completed" required />
-    <textarea id="titles" placeholder="Video titles (comma separated)"></textarea>
+    <textarea id="titles" placeholder="Video titles (comma separated)" required></textarea>
     <textarea id="notes" placeholder="Extra notes (optional)"></textarea>
-    <input type="hidden" id="editorName" />
+    <input type="hidden" id="editorName" name="editor" />
     <button type="submit">Submit Report</button>
-    <p id="message"></p>
+    <p id="submitMsg" style="color:green;"></p>
   </form>
 </div>
 
-<div class="container" id="dashboard">
-  <h2>📊 Admin Dashboard</h2>
-  <div id="report-table"></div>
-  <button onclick="logout()">Log Out</button>
-</div>
-
-<!-- Incentive popup -->
-<div id="incentive-popup" style="display: none;" class="popup" >
-  🎉 <strong>Incentive Earned!</strong> <br><br>
-  🏆 You’ve completed your weekly target.<br><br>
+<div id="incentivePopup" class="hidden">
+  🎉 Incentive Earned! Great job!
   <button onclick="closePopup()">Close</button>
 </div>
 
@@ -132,70 +99,53 @@
     "akhil krishna": "akhil4222"
   };
 
-  let reports = [];
-
   function login() {
-    const user = document.getElementById("username").value.trim().toLowerCase();
-    const pass = document.getElementById("password").value.trim();
-    if (users[user] && users[user] === pass) {
-      document.getElementById("login-section").style.display = "none";
-
-      if (user === "akhil krishna") {
-        document.getElementById("dashboard").style.display = "block";
-        updateDashboard();
-      } else {
-        document.getElementById("form-section").style.display = "block";
-        document.getElementById("editorName").value = user;
-      }
+    const u = document.getElementById("username").value.trim().toLowerCase();
+    const p = document.getElementById("password").value.trim();
+    if (users[u] && users[u] === p) {
+      document.getElementById("loginSection").classList.add("hidden");
+      document.getElementById("formSection").classList.remove("hidden");
+      document.getElementById("editorName").value = u;
     } else {
-      document.getElementById("error").innerText = "❌ Invalid credentials.";
+      document.getElementById("loginError").innerText = "❌ Invalid credentials";
     }
   }
 
-  function submitForm() {
-    const week = document.getElementById("week").value;
-    const month = document.getElementById("month").value;
-    const count = parseInt(document.getElementById("videoCount").value);
-    const titles = document.getElementById("titles").value;
-    const notes = document.getElementById("notes").value;
-    const editor = document.getElementById("editorName").value;
+  document.getElementById("reportForm").addEventListener("submit", function(e) {
+    e.preventDefault();
 
-    reports.push({ editor, week, month, count, titles, notes });
+    const formData = new FormData();
+    formData.append("week", document.getElementById("week").value);
+    formData.append("month", document.getElementById("month").value);
+    formData.append("count", document.getElementById("videoCount").value);
+    formData.append("titles", document.getElementById("titles").value);
+    formData.append("notes", document.getElementById("notes").value);
+    formData.append("editor", document.getElementById("editorName").value);
 
-    document.getElementById("message").innerText = "✅ Report submitted successfully.";
-
-    if (count >= 4) {
-      document.getElementById("incentive-popup").style.display = "flex";
-    }
-
-    return false;
-  }
+    fetch("https://script.google.com/macros/s/AKfycbzMHDrD7vDnzEXQLwcOldVezXXKyu9KykNA1UOgBKzn9Mf4ADNwD57o3Ul2CnmaXQ0l/exec", {
+      method: "POST",
+      body: formData
+    })
+    .then(res => res.text())
+    .then(response => {
+      const count = parseInt(document.getElementById("videoCount").value);
+      document.getElementById("submitMsg").innerText = "✅ Submitted successfully!";
+      if (count >= 4) {
+        document.getElementById("incentivePopup").classList.remove("hidden");
+      }
+      document.getElementById("reportForm").reset();
+    })
+    .catch(err => {
+      alert("Error submitting form.");
+      console.log(err);
+    });
+  });
 
   function closePopup() {
-    document.getElementById("incentive-popup").style.display = "none";
-  }
-
-  function updateDashboard() {
-    let html = "<table><tr><th>Editor</th><th>Week</th><th>Month</th><th>Videos</th><th>Titles</th><th>Notes</th><th>🎁 Incentive</th></tr>";
-    reports.forEach(r => {
-      html += `<tr>
-        <td>${r.editor}</td>
-        <td>${r.week}</td>
-        <td>${r.month}</td>
-        <td>${r.count}</td>
-        <td>${r.titles}</td>
-        <td>${r.notes}</td>
-        <td>${r.count >= 4 ? '✅' : '❌'}</td>
-      </tr>`;
-    });
-    html += "</table>";
-    document.getElementById("report-table").innerHTML = html;
-  }
-
-  function logout() {
-    location.reload();
+    document.getElementById("incentivePopup").classList.add("hidden");
   }
 </script>
 
 </body>
 </html>
+
