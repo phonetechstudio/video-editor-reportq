@@ -6,148 +6,118 @@
   <title>Video Editor Report</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f1f3f6;
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
       margin: 0;
       padding: 0;
     }
     .container {
-      max-width: 450px;
-      margin: 50px auto;
-      background: white;
+      max-width: 400px;
+      margin: 80px auto;
       padding: 20px;
-      border-radius: 12px;
+      background: white;
+      border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    h2 {
-      text-align: center;
-      color: #333;
     }
     input, textarea, button {
       width: 100%;
       padding: 10px;
       margin-top: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
       font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
     }
     button {
-      background: #007bff;
+      background-color: #4CAF50;
       color: white;
       border: none;
-      cursor: pointer;
     }
-    .hidden { display: none; }
-
-    #incentivePopup {
+    #form-section, #successPopup {
+      display: none;
+    }
+    #successPopup {
       position: fixed;
-      top: 0;
-      left: 0;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       background: rgba(0,0,0,0.8);
       color: white;
-      width: 100%;
-      height: 100%;
-      z-index: 999;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      flex-direction: column;
-    }
-
-    #incentivePopup button {
-      margin-top: 20px;
-      background: #28a745;
+      font-size: 30px;
+      text-align: center;
+      padding-top: 200px;
+      z-index: 1000;
     }
   </style>
 </head>
 <body>
+  <div class="container" id="login-section">
+    <h2>🔐 Editor Login</h2>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="login()">Login</button>
+    <p id="error" style="color: red;"></p>
+  </div>
 
-<div class="container" id="loginSection">
-  <h2>🔐 Editor Login</h2>
-  <input type="text" id="username" placeholder="Username" />
-  <input type="password" id="password" placeholder="Password" />
-  <button onclick="login()">Login</button>
-  <p id="loginError" style="color:red;"></p>
-</div>
+  <div class="container" id="form-section">
+    <h2>🎬 Submit Report</h2>
+    <form id="reportForm">
+      <input type="text" name="Week" placeholder="Week (e.g., Week 30)" required>
+      <input type="text" name="Month" placeholder="Month (e.g., July)" required>
+      <input type="number" name="VideoCount" id="videoCount" placeholder="Number of videos" required>
+      <textarea name="VideoTitles" placeholder="Video titles (comma separated)"></textarea>
+      <textarea name="Notes" placeholder="Extra notes (optional)"></textarea>
+      <input type="text" name="EditorName" id="editorName" readonly />
+      <button type="submit">Submit</button>
+    </form>
+    <p id="submitMessage"></p>
+  </div>
 
-<div class="container hidden" id="formSection">
-  <h2>🎬 Submit Weekly Report</h2>
-  <form id="reportForm">
-    <input type="text" id="week" placeholder="Week Number (e.g., Week 30)" required />
-    <input type="text" id="month" placeholder="Month (e.g., July)" required />
-    <input type="number" id="videoCount" placeholder="Number of videos completed" required />
-    <textarea id="titles" placeholder="Video titles (comma separated)" required></textarea>
-    <textarea id="notes" placeholder="Extra notes (optional)"></textarea>
-    <input type="hidden" id="editorName" name="editor" />
-    <button type="submit">Submit Report</button>
-    <p id="submitMsg" style="color:green;"></p>
-  </form>
-</div>
+  <div id="successPopup">🎉 You’ve earned an incentive!</div>
 
-<div id="incentivePopup">
-  🎉 Incentive Earned! Great job!
-  <button onclick="closePopup()">Close</button>
-</div>
+  <script>
+    const users = {
+      "theju0922": "theju0922",
+      "sanadshehin7587": "sanadshehin7587",
+      "afeef1824": "afeef1824",
+      "akhil krishna": "akhil4222"
+    };
 
-<script>
-  // Hide incentive popup initially
-  document.getElementById("incentivePopup").style.display = "none";
-
-  const users = {
-    "theju0922": "theju0922",
-    "sanadshehin7587": "sanadshehin7587",
-    "afeef1824": "afeef1824",
-    "akhil krishna": "akhil4222"
-  };
-
-  function login() {
-    const u = document.getElementById("username").value.trim().toLowerCase();
-    const p = document.getElementById("password").value.trim();
-    if (users[u] && users[u] === p) {
-      document.getElementById("loginSection").classList.add("hidden");
-      document.getElementById("formSection").classList.remove("hidden");
-      document.getElementById("editorName").value = u;
-    } else {
-      document.getElementById("loginError").innerText = "❌ Invalid credentials";
-    }
-  }
-
-  document.getElementById("reportForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-
-    const count = parseInt(document.getElementById("videoCount").value);
-    const formData = new FormData();
-    formData.append("week", document.getElementById("week").value);
-    formData.append("month", document.getElementById("month").value);
-    formData.append("count", count);
-    formData.append("titles", document.getElementById("titles").value);
-    formData.append("notes", document.getElementById("notes").value);
-    formData.append("editor", document.getElementById("editorName").value);
-
-    fetch("https://script.google.com/macros/s/AKfycbzMHDrD7vDnzEXQLwcOldVezXXKyu9KykNA1UOgBKzn9Mf4ADNwD57o3Ul2CnmaXQ0l/exec", {
-      method: "POST",
-      body: formData
-    })
-    .then(res => res.text())
-    .then(response => {
-      document.getElementById("submitMsg").innerText = "✅ Submitted successfully!";
-      if (count >= 4) {
-        document.getElementById("incentivePopup").style.display = "flex";
+    function login() {
+      const u = document.getElementById("username").value.trim().toLowerCase();
+      const p = document.getElementById("password").value.trim();
+      if (users[u] && users[u] === p) {
+        document.getElementById("login-section").style.display = "none";
+        document.getElementById("form-section").style.display = "block";
+        document.getElementById("editorName").value = u;
+      } else {
+        document.getElementById("error").innerText = "❌ Invalid login";
       }
-      document.getElementById("reportForm").reset();
-    })
-    .catch(err => {
-      alert("Error submitting form.");
-      console.log(err);
+    }
+
+    const form = document.getElementById("reportForm");
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+      const videoCount = parseInt(document.getElementById("videoCount").value);
+      const data = new FormData(form);
+      fetch("https://script.google.com/macros/s/AKfycbzMHDrD7vDnzEXQLwcOldVezXXKyu9KykNA1UOgBKzn9Mf4ADNwD57o3Ul2CnmaXQ0l/exec", {
+        method: "POST",
+        body: data
+      })
+      .then(res => {
+        if (videoCount >= 4) {
+          document.getElementById("successPopup").style.display = "block";
+          setTimeout(() => {
+            document.getElementById("successPopup").style.display = "none";
+          }, 3000);
+        } else {
+          document.getElementById("submitMessage").innerText = "✅ Report submitted.";
+        }
+        form.reset();
+      })
+      .catch(err => {
+        document.getElementById("submitMessage").innerText = "❌ Submit failed.";
+        console.error("Error:", err);
+      });
     });
-  });
-
-  function closePopup() {
-    document.getElementById("incentivePopup").style.display = "none";
-  }
-</script>
-
+  </script>
 </body>
 </html>
