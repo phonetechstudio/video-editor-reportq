@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -49,7 +51,7 @@
       width: 100%;
       height: 100%;
       z-index: 999;
-      display: flex;
+      display: none;
       align-items: center;
       justify-content: center;
       font-size: 24px;
@@ -86,12 +88,15 @@
   </form>
 </div>
 
-<div id="incentivePopup" class="hidden">
+<div id="incentivePopup">
   🎉 Incentive Earned! Great job!
   <button onclick="closePopup()">Close</button>
 </div>
 
 <script>
+  // Hide incentive popup initially
+  document.getElementById("incentivePopup").style.display = "none";
+
   const users = {
     "theju0922": "theju0922",
     "sanadshehin7587": "sanadshehin7587",
@@ -114,10 +119,11 @@
   document.getElementById("reportForm").addEventListener("submit", function(e) {
     e.preventDefault();
 
+    const count = parseInt(document.getElementById("videoCount").value);
     const formData = new FormData();
     formData.append("week", document.getElementById("week").value);
     formData.append("month", document.getElementById("month").value);
-    formData.append("count", document.getElementById("videoCount").value);
+    formData.append("count", count);
     formData.append("titles", document.getElementById("titles").value);
     formData.append("notes", document.getElementById("notes").value);
     formData.append("editor", document.getElementById("editorName").value);
@@ -128,10 +134,9 @@
     })
     .then(res => res.text())
     .then(response => {
-      const count = parseInt(document.getElementById("videoCount").value);
       document.getElementById("submitMsg").innerText = "✅ Submitted successfully!";
       if (count >= 4) {
-        document.getElementById("incentivePopup").classList.remove("hidden");
+        document.getElementById("incentivePopup").style.display = "flex";
       }
       document.getElementById("reportForm").reset();
     })
@@ -142,10 +147,9 @@
   });
 
   function closePopup() {
-    document.getElementById("incentivePopup").classList.add("hidden");
+    document.getElementById("incentivePopup").style.display = "none";
   }
 </script>
 
 </body>
 </html>
-
