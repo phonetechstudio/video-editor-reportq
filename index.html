@@ -1,155 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Video Editor Report</title>
   <style>
-    body {
-      font-family: sans-serif;
-      background: #f4f6f8;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 450px;
-      margin: 80px auto;
-      background: white;
-      padding: 25px;
-      border-radius: 10px;
-      box-shadow: 0 0 12px rgba(0,0,0,0.1);
-    }
-    input, textarea, button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    button {
-      background: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    h2 {
-      text-align: center;
-      color: #333;
-    }
-    .hidden {
-      display: none;
-    }
-    #popup {
-      position: fixed;
-      top: 0;
-      left: 0;
-      background: rgba(0,0,0,0.8);
-      width: 100%;
-      height: 100%;
-      display: none;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-size: 2rem;
-      text-align: center;
-      z-index: 9999;
-    }
+    body { font-family: sans-serif; background: #f4f6f8; margin: 0; padding: 0; }
+    .container { max-width:400px; margin:80px auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
+    h2 { text-align:center; margin-bottom:10px; }
+    input, textarea, button { width:100%; padding:10px; margin-top:10px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; font-size:16px; }
+    button { background:#007bff; color:#fff; border:none; cursor:pointer; }
+    button:hover { background:#0056b3; }
+    .hidden { display:none; }
+    #popup { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); color:#fff; display:flex; align-items:center; justify-content:center; font-size:24px; text-align:center; z-index:1000; padding:20px; box-sizing:border-box; display:none; }
+    #popup button { margin-top:20px; background:#28a745; padding:10px 20px; font-size:18px; }
   </style>
 </head>
 <body>
 
-<div class="container" id="login-section">
-  <h2>🔐 Editor Login</h2>
-  <input type="text" id="username" placeholder="Username" required />
-  <input type="password" id="password" placeholder="Password" required />
-  <button onclick="login()">Login</button>
-  <p id="login-error" style="color: red;"></p>
-</div>
+  <div class="container" id="loginSection">
+    <h2>🔐 Login</h2>
+    <input id="username" placeholder="Username"/>
+    <input id="password" type="password" placeholder="Password"/>
+    <button onclick="handleLogin()">Login</button>
+    <p id="loginError" style="color:red;"></p>
+  </div>
 
-<div class="container hidden" id="form-section">
-  <h2>📋 Weekly Report</h2>
-  <form id="reportForm">
-    <input type="text" id="week" placeholder="Week number (e.g. Week 30)" required />
-    <input type="text" id="month" placeholder="Month (e.g. July)" required />
-    <input type="number" id="videoCount" placeholder="No. of videos completed" required />
-    <textarea id="titles" placeholder="Video titles (comma separated)"></textarea>
-    <textarea id="notes" placeholder="Extra notes (optional)"></textarea>
-    <input type="hidden" id="editorName" />
-    <button type="submit">Submit Report</button>
-  </form>
-  <p id="msg"></p>
-</div>
+  <div class="container hidden" id="formSection">
+    <h2>🎬 Submit Weekly Report</h2>
+    <form id="reportForm">
+      <input id="editorName" type="hidden"/>
+      <input id="week" placeholder="Week (e.g. Week 30)" required/>
+      <input id="month" placeholder="Month (e.g. July)" required/>
+      <input id="videoCount" type="number" placeholder="Number of videos completed" required/>
+      <textarea id="titles" placeholder="Video titles (comma‑separated)"></textarea>
+      <textarea id="notes" placeholder="Extra notes (optional)"></textarea>
+      <button type="submit">Submit Report</button>
+    </form>
+    <p id="submitMsg" style="color:green;"></p>
+  </div>
 
-<div class="container hidden" id="admin-section">
-  <h2>👨‍💼 Admin Dashboard</h2>
-  <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQvjvSY-EXAMPLEURL/pubhtml?widget=true&amp;headers=false" width="100%" height="400px"></iframe>
-</div>
+  <div class="container hidden" id="adminSection">
+    <h2>👨‍💼 Admin Dashboard</h2>
+    <!-- Admin tools / embed sheet here -->
+    <button onclick="location.reload()">Log Out</button>
+  </div>
 
-<div id="popup">🎉 Incentive Earned! 🎉</div>
+  <div id="popup">
+    🎉 <strong>Incentive Earned!</strong><br/>
+    🏆 You’ve hit the weekly target!<br/>
+    <button onclick="closePopup()">Close</button>
+  </div>
 
 <script>
   const users = {
-    "theju0922": "theju0922",
-    "sanadshehin7587": "sanadshehin7587",
-    "afeef1824": "afeef1824",
-    "akhil krishna": "akhil4222"
+    "theju0922":"theju0922",
+    "sanadshehin7587":"sanadshehin7587",
+    "afeef1824":"afeef1824",
+    "akhil krishna":"akhil4222"
   };
 
-  function login() {
-    const user = document.getElementById("username").value.trim().toLowerCase();
-    const pass = document.getElementById("password").value.trim();
-    const error = document.getElementById("login-error");
-
-    if (users[user] && users[user] === pass) {
-      document.getElementById("login-section").classList.add("hidden");
-
-      if (user === "akhil krishna") {
-        document.getElementById("admin-section").classList.remove("hidden");
+  function handleLogin(){
+    const u = document.getElementById('username').value.trim().toLowerCase();
+    const p = document.getElementById('password').value;
+    if(users[u] === p){
+      document.getElementById('loginSection').classList.add('hidden');
+      if(u === 'akhil krishna'){
+        document.getElementById('adminSection').classList.remove('hidden');
       } else {
-        document.getElementById("editorName").value = user;
-        document.getElementById("form-section").classList.remove("hidden");
+        document.getElementById('editorName').value = u;
+        document.getElementById('formSection').classList.remove('hidden');
       }
     } else {
-      error.textContent = "Invalid username or password.";
+      document.getElementById('loginError').innerText = 'Invalid credentials';
     }
   }
 
-  document.getElementById("reportForm").addEventListener("submit", function(e) {
+  document.getElementById('reportForm').addEventListener('submit', e => {
     e.preventDefault();
-    const week = document.getElementById("week").value;
-    const month = document.getElementById("month").value;
-    const videoCount = parseInt(document.getElementById("videoCount").value);
-    const titles = document.getElementById("titles").value;
-    const notes = document.getElementById("notes").value;
-    const editor = document.getElementById("editorName").value;
+    const week = document.getElementById('week').value;
+    const month = document.getElementById('month').value;
+    const count = parseInt(document.getElementById('videoCount').value);
+    const titles = document.getElementById('titles').value;
+    const notes = document.getElementById('notes').value;
+    const editor = document.getElementById('editorName').value;
 
-    const formData = new FormData();
-    formData.append("week", week);
-    formData.append("month", month);
-    formData.append("videoCount", videoCount);
-    formData.append("titles", titles);
-    formData.append("notes", notes);
-    formData.append("editor", editor);
+    const payload = { editor, week, month, videoCount: count, titles, notes };
 
-    fetch("https://script.google.com/macros/s/AKfycbzMHDrD7vDnzEXQLwcOldVezXXKyu9KykNA1UOgBKzn9Mf4ADNwD57o3Ul2CnmaXQ0l/exec", {
-      method: "POST",
-      body: formData
+    fetch('https://script.google.com/macros/s/AKfycbzMHDrD7vDnzEXQLwcOldVezXXKyu9KykNA1UOgBKzn9Mf4ADNwD57o3Ul2CnmaXQ0l/exec', {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     })
-    .then(res => res.text())
-    .then(data => {
-      document.getElementById("msg").textContent = "✅ Submitted successfully!";
-      if (videoCount >= 4) {
-        document.getElementById("popup").style.display = "flex";
-        setTimeout(() => {
-          document.getElementById("popup").style.display = "none";
-        }, 3000);
+    .then(() => {
+      document.getElementById('submitMsg').innerText = '✅ Submitted!';
+      if(count >= 4){
+        document.getElementById('popup').style.display = 'flex';
       }
+      document.getElementById('reportForm').reset();
     })
     .catch(err => {
-      document.getElementById("msg").textContent = "❌ Error submitting form.";
+      document.getElementById('submitMsg').innerText = '❌ Submission failed';
+      console.error(err);
     });
   });
+
+  function closePopup(){
+    document.getElementById('popup').style.display = 'none';
+  }
 </script>
+
 </body>
 </html>
+
