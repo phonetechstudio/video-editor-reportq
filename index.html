@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Video Editor Report</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 60px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    #form-section, #dashboard {
+      display: none;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    #incentive-popup {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9);
+      color: white;
+      font-size: 28px;
+      text-align: center;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 9999;
+    }
+
+    #incentive-popup button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background: #eee;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container" id="login-section">
+  <h2>🔐 Login</h2>
+  <input type="text" id="username" placeholder="Username" required>
+  <input type="password" id="password" placeholder="Password" required>
+  <button onclick="login()">Login</button>
+  <p id="error" style="color: red;"></p>
+</div>
+
+<div class="container" id="form-section">
+  <h2>🎬 Submit Report</h2>
+  <form onsubmit="return submitForm()">
+    <input type="text" id="week" placeholder="Week Number (e.g., Week 30)" required />
+    <input type="text" id="month" placeholder="Month (e.g., July)" required />
+    <input type="number" id="videoCount" placeholder="Number of videos completed" required />
+    <textarea id="titles" placeholder="Video titles (comma separated)"></textarea>
+    <textarea id="notes" placeholder="Extra notes (optional)"></textarea>
+    <input type="hidden" id="editorName" />
+    <button type="submit">Submit Report</button>
+    <p id="message"></p>
+  </form>
+</div>
+
+<div class="container" id="dashboard">
+  <h2>📊 Admin Dashboard</h2>
+  <div id="report-table"></div>
+  <button onclick="logout()">Log Out</button>
+</div>
+
+<!-- Incentive popup -->
+<div id="incentive-popup" style="display: none;" class="popup" >
+  🎉 <strong>Incentive Earned!</strong> <br><br>
+  🏆 You’ve completed your weekly target.<br><br>
+  <button onclick="closePopup()">Close</button>
+</div>
+
+<script>
+  const users = {
+    "theju0922": "theju0922",
+    "sanadshehin7587": "sanadshehin7587",
+    "afeef1824": "afeef1824",
+    "akhil krishna": "akhil4222"
+  };
+
+  let reports = [];
+
+  function login() {
+    const user = document.getElementById("username").value.trim().toLowerCase();
+    const pass = document.getElementById("password").value.trim();
+    if (users[user] && users[user] === pass) {
+      document.getElementById("login-section").style.display = "none";
+
+      if (user === "akhil krishna") {
+        document.getElementById("dashboard").style.display = "block";
+        updateDashboard();
+      } else {
+        document.getElementById("form-section").style.display = "block";
+        document.getElementById("editorName").value = user;
+      }
+    } else {
+      document.getElementById("error").innerText = "❌ Invalid credentials.";
+    }
+  }
+
+  function submitForm() {
+    const week = document.getElementById("week").value;
+    const month = document.getElementById("month").value;
+    const count = parseInt(document.getElementById("videoCount").value);
+    const titles = document.getElementById("titles").value;
+    const notes = document.getElementById("notes").value;
+    const editor = document.getElementById("editorName").value;
+
+    reports.push({ editor, week, month, count, titles, notes });
+
+    document.getElementById("message").innerText = "✅ Report submitted successfully.";
+
+    if (count >= 4) {
+      document.getElementById("incentive-popup").style.display = "flex";
+    }
+
+    return false;
+  }
+
+  function closePopup() {
+    document.getElementById("incentive-popup").style.display = "none";
+  }
+
+  function updateDashboard() {
+    let html = "<table><tr><th>Editor</th><th>Week</th><th>Month</th><th>Videos</th><th>Titles</th><th>Notes</th><th>🎁 Incentive</th></tr>";
+    reports.forEach(r => {
+      html += `<tr>
+        <td>${r.editor}</td>
+        <td>${r.week}</td>
+        <td>${r.month}</td>
+        <td>${r.count}</td>
+        <td>${r.titles}</td>
+        <td>${r.notes}</td>
+        <td>${r.count >= 4 ? '✅' : '❌'}</td>
+      </tr>`;
+    });
+    html += "</table>";
+    document.getElementById("report-table").innerHTML = html;
+  }
+
+  function logout() {
+    location.reload();
+  }
+</script>
+
+</body>
+</html>
